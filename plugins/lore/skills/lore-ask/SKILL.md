@@ -14,8 +14,8 @@ Lore MCP read tools; this skill is the explicit entry point.)
 ```bash
 # Bundled Lore CLI: plugin install dir, plugin cache, or a dev checkout. node >= 20 on PATH.
 LORE_CLI="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/dist/cli.mjs}"
-[ -f "$LORE_CLI" ] || LORE_CLI="$(ls "$HOME"/.claude/plugins/cache/*/lore/dist/cli.mjs "$HOME"/.claude/plugins/*/lore/dist/cli.mjs 2>/dev/null | head -1)"
-[ -f "$LORE_CLI" ] || LORE_CLI="$HOME/work/lore/dist/cli.mjs"
+[ -f "$LORE_CLI" ] || LORE_CLI="$(ls "$HOME"/.claude/plugins/cache/*/lore/*/dist/cli.mjs "$HOME"/.claude/plugins/cache/*/lore/dist/cli.mjs "$HOME"/.claude/plugins/marketplaces/*/plugins/lore/dist/cli.mjs 2>/dev/null | head -1)"
+[ -f "$LORE_CLI" ] || LORE_CLI="$HOME/work/lore/plugins/lore/dist/cli.mjs"
 LORE() { node "$LORE_CLI" "$@"; }
 LORE_HOME="${LORE_HOME:-$HOME/.lore}"
 ```

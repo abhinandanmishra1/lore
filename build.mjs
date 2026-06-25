@@ -21,7 +21,10 @@ const common = {
   logLevel: 'info',
 };
 
-await esbuild.build({ ...common, entryPoints: ['src/cli.ts'], outfile: 'dist/cli.mjs' });
-await esbuild.build({ ...common, entryPoints: ['mcp/server.ts'], outfile: 'dist/server.mjs' });
+// Bundle into the plugin dir (plugins/lore/dist) — that subtree is the installable
+// Claude Code plugin; the marketplace points at ./plugins/lore.
+const OUT = 'plugins/lore/dist';
+await esbuild.build({ ...common, entryPoints: ['src/cli.ts'], outfile: `${OUT}/cli.mjs` });
+await esbuild.build({ ...common, entryPoints: ['mcp/server.ts'], outfile: `${OUT}/server.mjs` });
 
-console.log('built dist/cli.mjs + dist/server.mjs');
+console.log(`built ${OUT}/cli.mjs + ${OUT}/server.mjs`);

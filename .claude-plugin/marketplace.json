@@ -9,7 +9,7 @@
       "name": "lore",
       "displayName": "Lore",
       "description": "Engineering memory for Claude — save and query why/what/status of your shipped work.",
-      "source": "./"
+      "source": "./plugins/lore"
     }
   ]
 }
