@@ -1,5 +1,7 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "lore",
+  "description": "Engineering memory for Claude — save and query why/what/status of your shipped work.",
   "owner": {
     "name": "Abhinandan Mishra",
     "url": "https://github.com/abhinandanmishra1"
@@ -7,9 +9,9 @@
   "plugins": [
     {
       "name": "lore",
-      "displayName": "Lore",
       "description": "Engineering memory for Claude — save and query why/what/status of your shipped work.",
-      "source": "./plugins/lore"
+      "source": "./plugins/lore",
+      "category": "productivity"
     }
   ]
 }
