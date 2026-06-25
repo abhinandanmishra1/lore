@@ -1,0 +1,15 @@
+{
+  "name": "lore",
+  "owner": {
+    "name": "Abhinandan Mishra",
+    "url": "https://github.com/abhinandanmishra1"
+  },
+  "plugins": [
+    {
+      "name": "lore",
+      "displayName": "Lore",
+      "description": "Engineering memory for Claude — save and query why/what/status of your shipped work.",
+      "source": "./"
+    }
+  ]
+}

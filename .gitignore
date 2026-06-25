@@ -1,0 +1,6 @@
+node_modules/
+# dist/ is committed on purpose: plugin install runs no build step, so the
+# bundled cli.mjs + server.mjs must ship in the repo.
+*.log
+.DS_Store
+coverage/
