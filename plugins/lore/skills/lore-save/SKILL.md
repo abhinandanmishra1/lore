@@ -26,18 +26,30 @@ change, a plan, a feature walkthrough, a reusable reference/lesson. Do NOT save:
 chatter, half-formed ideas, anything trivially re-derivable. If it fails the gate, say so
 and stop.
 
-## Step 2 — gather context
+## Step 2 — gather context (auto-detect first, then confirm)
 
+Run `autocontext` once to fill the boring fields from git + gh — no manual typing:
+
+```bash
+LORE autocontext "$(pwd)"
+```
+
+It returns JSON: `{branch, ticket, repos, prs, warnings}`.
+
+- **repos_involved** ← `repos`. **epic / subtasks** ← `ticket` (the Jira id baked into the
+  branch name, e.g. `LMAPP-1495`). **prs** ← `prs` (map each to a PR record:
+  `{repo, pr, status}`; `merged_date` when status is merged). If `warnings` mentions gh,
+  PRs weren't detected — fill them by hand if you know them.
 - **project**: `LORE register "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"` → slug
   (idempotent; also ensures the project exists).
-- **repos_involved**: `LORE repos <dir...>` — pass the dirs the work actually touched
-  (the workspace root isn't a repo; this resolves into the sibling repos). Add a manual
-  entry if a touched repo wasn't on disk.
 - **feature**: a stable kebab id. Reuse the existing one if this continues prior work
-  (check the project index map). **initiative**: the parent multi-PR effort id, if any.
+  (check the project index map). The branch name is usually a strong hint. **initiative**:
+  the parent multi-PR effort id, if any (often the same as `ticket`).
 - **date / created_at**: when the work happened (default: now).
-- **epic/subtasks, prs, files, checklist, status**: fill the structured fields when the
-  context has them (Jira ids, PR numbers + state, repo-keyed file lists, QA gates).
+
+Show the user the auto-detected set (branch, ticket, repos, PRs, chosen feature) in one
+short line and let them correct it before writing. Don't interrogate field by field —
+confirm the detected bundle, fill only what's missing.
 
 ## Step 3 — distill + write
 

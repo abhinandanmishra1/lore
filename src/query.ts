@@ -73,4 +73,121 @@ export async function findEntry(home: string, id: string): Promise<Entry | null>
   return null;
 }
 
+export interface SearchHit {
+  id: string;
+  project: string;
+  feature: string;
+  initiative?: string;
+  type: Entry['frontmatter']['type'];
+  title: string;
+  date: string;
+  score: number;
+  snippet: string;
+}
+
+export interface SearchResult {
+  query: string;
+  count: number;
+  hits: SearchHit[];
+}
+
+// Field weights — a term in the title is worth far more than one more body
+// repeat; a hit on a file path / repo name means "this entry touched that thing".
+const W_TITLE = 5;
+const W_BODY = 1;
+const W_BODY_MAX = 6; // cap body-frequency so one verbose entry can't dominate
+const W_FILE = 3;
+const W_FEATURE = 4;
+
+function tokenize(q: string): string[] {
+  return q
+    .toLowerCase()
+    .split(/[^a-z0-9._/-]+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 1);
+}
+
+function countOccurrences(haystack: string, needle: string): number {
+  if (!needle) return 0;
+  let n = 0;
+  let i = haystack.indexOf(needle);
+  while (i !== -1) {
+    n++;
+    i = haystack.indexOf(needle, i + needle.length);
+  }
+  return n;
+}
+
+function buildSnippet(body: string, terms: string[]): string {
+  const lines = body.split('\n').map((l) => l.trim()).filter(Boolean);
+  const hit = lines.find((l) => {
+    const low = l.toLowerCase();
+    return terms.some((t) => low.includes(t));
+  });
+  const chosen = hit ?? lines[0] ?? '';
+  return chosen.length > 160 ? `${chosen.slice(0, 157)}...` : chosen;
+}
+
+// Full-text search across every entry. Ranked grep: scores title / body / files /
+// feature-name matches, returns the top `limit` hits. Pure file walk — no index,
+// no DB — which is plenty for a single user's store. Ties break on recency.
+export async function searchQuery(
+  home: string,
+  query: string,
+  limit = 20,
+): Promise<SearchResult> {
+  const terms = tokenize(query);
+  const hits: Array<SearchHit & { created_at: string }> = [];
+  if (terms.length === 0) return { query, count: 0, hits: [] };
+
+  for (const project of await listProjects(home)) {
+    for (const f of await listFeatures(home, project)) {
+      const entries = await readFeatureEntries(home, project, f.feature, f.initiative);
+      for (const e of entries) {
+        const fm = e.frontmatter;
+        const titleLow = fm.title.toLowerCase();
+        const bodyLow = e.body.toLowerCase();
+        const featureLow = fm.feature.toLowerCase();
+        const fileText = Object.values(fm.files ?? {})
+          .flat()
+          .concat(fm.repos_involved)
+          .join(' ')
+          .toLowerCase();
+
+        let score = 0;
+        let matched = 0;
+        for (const t of terms) {
+          let termScore = 0;
+          if (titleLow.includes(t)) termScore += W_TITLE;
+          if (featureLow.includes(t)) termScore += W_FEATURE;
+          if (fileText.includes(t)) termScore += W_FILE;
+          termScore += Math.min(countOccurrences(bodyLow, t) * W_BODY, W_BODY_MAX);
+          if (termScore > 0) matched++;
+          score += termScore;
+        }
+        // Require every query term to land somewhere (AND semantics) so search
+        // stays precise; drop the entry otherwise.
+        if (matched < terms.length || score === 0) continue;
+
+        hits.push({
+          id: fm.id,
+          project,
+          feature: f.feature,
+          initiative: f.initiative,
+          type: fm.type,
+          title: fm.title,
+          date: fm.date,
+          score,
+          snippet: buildSnippet(e.body, terms),
+          created_at: fm.created_at,
+        });
+      }
+    }
+  }
+
+  hits.sort((a, b) => (b.score - a.score) || (a.created_at < b.created_at ? 1 : -1));
+  const top = hits.slice(0, limit).map(({ created_at: _drop, ...h }) => h);
+  return { query, count: hits.length, hits: top };
+}
+
 export { listMetadataDays };

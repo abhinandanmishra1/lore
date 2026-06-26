@@ -12,8 +12,10 @@ import {
   type PutInput,
 } from './store.js';
 import { discoverCandidates } from './ingest.js';
-import { rangeQuery, loadFeature, findEntry } from './query.js';
+import { rangeQuery, loadFeature, findEntry, searchQuery } from './query.js';
 import { reposInvolved } from './repos.js';
+import { autoContext } from './autocontext.js';
+import { getSlackCursor, setSlackCursor } from './slackCursor.js';
 
 function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -125,9 +127,43 @@ async function main(): Promise<void> {
       return;
     }
 
+    case 'search': {
+      // `search <terms...> [--limit N]`
+      let limit = 20;
+      const terms: string[] = [];
+      for (let i = 0; i < args.length; i++) {
+        const a = args[i];
+        if (a === '--limit') {
+          limit = Number(args[++i]) || 20;
+        } else if (a !== undefined) {
+          terms.push(a);
+        }
+      }
+      if (terms.length === 0) throw new Error('search needs <terms>');
+      out({ ok: true, ...(await searchQuery(home, terms.join(' '), limit)) });
+      return;
+    }
+
     case 'repos': {
       const dirs = args.length > 0 ? args : [process.cwd()];
       out({ ok: true, repos: await reposInvolved(dirs) });
+      return;
+    }
+
+    case 'autocontext': {
+      const dir = args[0] ?? process.cwd();
+      out({ ok: true, ...(await autoContext(dir)) });
+      return;
+    }
+
+    case 'slack-cursor': {
+      const [ts] = args;
+      if (ts) {
+        await setSlackCursor(home, ts);
+        out({ ok: true, cursor: ts });
+      } else {
+        out({ ok: true, cursor: await getSlackCursor(home) });
+      }
       return;
     }
 
@@ -143,6 +179,9 @@ async function main(): Promise<void> {
           '  range <from> <to>             time-range query over daily logs (ISO days)\n' +
           '  feature <project> <feature> [initiative]   load a feature\'s entries\n' +
           '  entry <id>                    fetch one entry by id\n' +
+          '  search <terms> [--limit N]    ranked full-text search across all entries\n' +
+          '  autocontext [dir]             auto-detect branch/ticket/PRs/repos as JSON\n' +
+          '  slack-cursor [ts]             get (no arg) or set the Slack inbox drain cursor\n' +
           '  repos [dir...]                repo names touched (git toplevel basenames)\n',
       );
       process.exitCode = 2;

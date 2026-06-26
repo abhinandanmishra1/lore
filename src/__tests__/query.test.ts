@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { putEntry, reindexAll, driftAll, type PutInput } from '../store.js';
-import { rangeQuery, loadFeature, findEntry } from '../query.js';
+import { rangeQuery, loadFeature, findEntry, searchQuery } from '../query.js';
 
 let home: string;
 beforeEach(async () => {
@@ -62,6 +62,52 @@ describe('findEntry', () => {
   });
   it('returns null for a missing id', async () => {
     expect(await findEntry(home, 'nope-999')).toBeNull();
+  });
+});
+
+describe('searchQuery', () => {
+  it('ranks title matches above body-only matches', async () => {
+    await putEntry(home, input({ feature: 'poller', title: 'debounced poller decision', body: 'unrelated' }));
+    await putEntry(home, input({ feature: 'other', title: 'something else', body: 'we mention debounce once here' }));
+    const r = await searchQuery(home, 'debounce');
+    expect(r.count).toBe(2);
+    expect(r.hits[0]!.title).toBe('debounced poller decision');
+    expect(r.hits[0]!.score).toBeGreaterThan(r.hits[1]!.score);
+  });
+
+  it('matches on file paths and repo names', async () => {
+    await putEntry(home, input({ feature: 'authfix', title: 'fix', body: 'b', files: { 'web-frontend': ['src/auth.ts'] } }));
+    const r = await searchQuery(home, 'auth.ts');
+    expect(r.count).toBe(1);
+    expect(r.hits[0]!.feature).toBe('authfix');
+  });
+
+  it('requires every term to match (AND semantics)', async () => {
+    await putEntry(home, input({ feature: 'a', title: 'debounce poller', body: 'b' }));
+    await putEntry(home, input({ feature: 'b', title: 'debounce only', body: 'b' }));
+    const r = await searchQuery(home, 'debounce poller');
+    expect(r.count).toBe(1);
+    expect(r.hits[0]!.feature).toBe('a');
+  });
+
+  it('respects the limit', async () => {
+    for (let i = 0; i < 5; i++) {
+      await putEntry(home, input({ feature: `f${i}`, title: `widget ${i}`, body: 'b' }));
+    }
+    const r = await searchQuery(home, 'widget', 2);
+    expect(r.count).toBe(5);
+    expect(r.hits).toHaveLength(2);
+  });
+
+  it('returns a snippet from a matching body line', async () => {
+    await putEntry(home, input({ feature: 'snip', title: 't', body: 'line one\nthe debounce trick lives here\nline three' }));
+    const r = await searchQuery(home, 'debounce');
+    expect(r.hits[0]!.snippet).toContain('debounce trick');
+  });
+
+  it('empty / whitespace query returns nothing', async () => {
+    await putEntry(home, input({}));
+    expect((await searchQuery(home, '   ')).count).toBe(0);
   });
 });
 
