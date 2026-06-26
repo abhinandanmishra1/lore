@@ -28740,7 +28740,7 @@ async function searchQuery(home2, query, limit = 20) {
 // mcp/server.ts
 var home = loreHome();
 var json = (data) => ({ content: [{ type: "text", text: JSON.stringify(data) }] });
-var server = new McpServer({ name: "lore", version: "0.1.0" });
+var server = new McpServer({ name: "lore", version: "0.2.0" });
 server.registerTool(
   "lore_projects",
   {

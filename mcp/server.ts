@@ -13,7 +13,7 @@ import { rangeQuery, loadFeature, findEntry, searchQuery } from '../src/query.js
 const home = loreHome();
 const json = (data: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(data) }] });
 
-const server = new McpServer({ name: 'lore', version: '0.1.0' });
+const server = new McpServer({ name: 'lore', version: '0.2.0' });
 
 server.registerTool(
   'lore_projects',
