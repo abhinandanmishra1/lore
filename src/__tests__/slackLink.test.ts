@@ -3,7 +3,7 @@ import { parseSlackPermalink, findSlackPermalink } from '../slackLink.js';
 
 describe('parseSlackPermalink', () => {
   it('parses a plain message permalink (inserts the ts dot)', () => {
-    const r = parseSlackPermalink('https://the-project44.slack.com/archives/C0BDBV8S1L2/p1782456420191299');
+    const r = parseSlackPermalink('https://acme.slack.com/archives/C0BDBV8S1L2/p1782456420191299');
     expect(r).toEqual({ channelId: 'C0BDBV8S1L2', ts: '1782456420.191299' });
   });
 

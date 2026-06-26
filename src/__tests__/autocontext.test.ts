@@ -3,7 +3,7 @@ import { extractTicket } from '../autocontext.js';
 
 describe('extractTicket', () => {
   it('pulls a ticket from the team branch convention', () => {
-    expect(extractTicket('LMAPP-1495-fix-api-call-issue')).toBe('LMAPP-1495');
+    expect(extractTicket('PROJ-1495-fix-api-call-issue')).toBe('PROJ-1495');
   });
   it('matches a ticket anywhere in the branch', () => {
     expect(extractTicket('feature/PROJ-22-thing')).toBe('PROJ-22');
@@ -16,6 +16,6 @@ describe('extractTicket', () => {
     expect(extractTicket(null)).toBeNull();
   });
   it('does not match lowercase project keys', () => {
-    expect(extractTicket('lmapp-12-nope')).toBeNull();
+    expect(extractTicket('proj-12-nope')).toBeNull();
   });
 });
