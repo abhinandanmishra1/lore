@@ -8072,6 +8072,26 @@ async function setSlackCursor(home, ts) {
 `, "utf8");
 }
 
+// src/slackLink.ts
+var ARCHIVE = /\/archives\/([A-Z0-9]+)\/p(\d{10})(\d{6})/;
+function parseSlackPermalink(url) {
+  const m = ARCHIVE.exec(url);
+  if (!m) return null;
+  const [, channelId, secs, micros] = m;
+  const link = { channelId, ts: `${secs}.${micros}` };
+  const q = url.indexOf("?");
+  if (q !== -1) {
+    const params = new URLSearchParams(url.slice(q + 1));
+    const thread = params.get("thread_ts");
+    if (thread) link.threadTs = thread;
+  }
+  return link;
+}
+function findSlackPermalink(text) {
+  const m = /https?:\/\/[^\s]*\/archives\/[A-Z0-9]+\/p\d{16}[^\s]*/.exec(text);
+  return m ? m[0] : null;
+}
+
 // src/cli.ts
 function readStdin() {
   return new Promise((resolve, reject) => {
@@ -8206,9 +8226,17 @@ async function main() {
       }
       return;
     }
+    case "slack-link": {
+      const arg = args[0] ?? (await readStdin()).trim();
+      if (!arg) throw new Error("slack-link needs a permalink (arg or stdin)");
+      const url = findSlackPermalink(arg) ?? arg;
+      const parsed = parseSlackPermalink(url);
+      out(parsed ? { ok: true, ...parsed } : { ok: false, error: "not a Slack permalink" });
+      return;
+    }
     default:
       process2.stderr.write(
-        "usage: lore <command>\n  scaffold                      create the ~/.lore tree\n  register [repoPath]           register a project (slug from path)\n  ingest-scan <path...>         list importable markdown (dedup by source_hash)\n  put                           write one entry from JSON on stdin\n  reindex                       rebuild all index maps + daily logs from entries\n  drift                         report cache drift (hash + index-count mismatches)\n  range <from> <to>             time-range query over daily logs (ISO days)\n  feature <project> <feature> [initiative]   load a feature's entries\n  entry <id>                    fetch one entry by id\n  search <terms> [--limit N]    ranked full-text search across all entries\n  autocontext [dir]             auto-detect branch/ticket/PRs/repos as JSON\n  slack-cursor [ts]             get (no arg) or set the Slack inbox drain cursor\n  repos [dir...]                repo names touched (git toplevel basenames)\n"
+        "usage: lore <command>\n  scaffold                      create the ~/.lore tree\n  register [repoPath]           register a project (slug from path)\n  ingest-scan <path...>         list importable markdown (dedup by source_hash)\n  put                           write one entry from JSON on stdin\n  reindex                       rebuild all index maps + daily logs from entries\n  drift                         report cache drift (hash + index-count mismatches)\n  range <from> <to>             time-range query over daily logs (ISO days)\n  feature <project> <feature> [initiative]   load a feature's entries\n  entry <id>                    fetch one entry by id\n  search <terms> [--limit N]    ranked full-text search across all entries\n  autocontext [dir]             auto-detect branch/ticket/PRs/repos as JSON\n  slack-cursor [ts]             get (no arg) or set the Slack inbox drain cursor\n  slack-link <url>              parse a Slack permalink -> {channelId, ts, threadTs}\n  repos [dir...]                repo names touched (git toplevel basenames)\n"
       );
       process2.exitCode = 2;
   }

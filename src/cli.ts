@@ -16,6 +16,7 @@ import { rangeQuery, loadFeature, findEntry, searchQuery } from './query.js';
 import { reposInvolved } from './repos.js';
 import { autoContext } from './autocontext.js';
 import { getSlackCursor, setSlackCursor } from './slackCursor.js';
+import { parseSlackPermalink, findSlackPermalink } from './slackLink.js';
 
 function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -167,6 +168,17 @@ async function main(): Promise<void> {
       return;
     }
 
+    case 'slack-link': {
+      // Parse a Slack permalink (from stdin OR argv) into {channelId, ts, threadTs}
+      // so /lore-drain can fetch the linked thread and summarize it locally.
+      const arg = args[0] ?? (await readStdin()).trim();
+      if (!arg) throw new Error('slack-link needs a permalink (arg or stdin)');
+      const url = findSlackPermalink(arg) ?? arg;
+      const parsed = parseSlackPermalink(url);
+      out(parsed ? { ok: true, ...parsed } : { ok: false, error: 'not a Slack permalink' });
+      return;
+    }
+
     default:
       process.stderr.write(
         'usage: lore <command>\n' +
@@ -182,6 +194,7 @@ async function main(): Promise<void> {
           '  search <terms> [--limit N]    ranked full-text search across all entries\n' +
           '  autocontext [dir]             auto-detect branch/ticket/PRs/repos as JSON\n' +
           '  slack-cursor [ts]             get (no arg) or set the Slack inbox drain cursor\n' +
+          '  slack-link <url>              parse a Slack permalink -> {channelId, ts, threadTs}\n' +
           '  repos [dir...]                repo names touched (git toplevel basenames)\n',
       );
       process.exitCode = 2;

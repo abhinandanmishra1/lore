@@ -1,6 +1,6 @@
 ---
 name: lore-drain
-description: Pull notes posted to the private #lore-inbox Slack channel into Lore memory — distill each into an entry, then mark it done. Lets you capture a thought from Slack (phone, away from your machine) and have Claude absorb it later. Use when the user says "drain lore", "/lore-drain", "pull my lore inbox", "sync slack notes to lore", or proactively at the start of a session if the user mentions notes they left in Slack.
+description: Pull notes posted to the private #lore-inbox Slack channel into Lore memory — distill each into an entry, then mark it done. Notes can be typed thoughts OR forwarded message links from any other channel (via the "Save to Lore" shortcut); for a link, drain reads the original thread and summarizes it locally. Lets you capture from Slack (phone, another channel, away from your machine) and have Claude absorb it later. Use when the user says "drain lore", "/lore-drain", "pull my lore inbox", "sync slack notes to lore", or proactively at session start if the user mentions notes left in Slack.
 ---
 
 # /lore-drain
@@ -42,6 +42,28 @@ message **after** the cursor.
 Skip non-content messages: channel-join/leave and other `subtype` system messages, and any
 message already bearing a ✅ (`white_check_mark`) reaction (defensive — means a prior drain
 processed it). Process the rest oldest → newest so ids and the cursor advance in order.
+
+## Step 2.5 — expand forwarded Slack links (cross-channel capture)
+
+A note may be a forwarded message link instead of typed text — this is how a discussion in
+ANOTHER channel reaches Lore (via the "Save to Lore" message shortcut, which drops the
+message's permalink into #lore-inbox). For each note, check for a Slack permalink:
+
+```bash
+printf '%s' '<note text>' | LORE slack-link    # -> {channelId, ts, threadTs?} or {ok:false}
+```
+
+If it parses:
+- Read the linked message with the Slack tool (`channelId` + `ts`). If `threadTs` is
+  present, read the WHOLE thread (`slack_read_thread` with that thread_ts) so you summarize
+  the full discussion, not one reply.
+- Distill the thread/message into the entry `body` (the decision/outcome + who said what
+  that matters; drop chatter). Record the source channel name and keep the permalink in the
+  body so the entry links back to the original discussion.
+- Use the project/feature named in the discussion if clear; else the inbox/unsorted home
+  (Step 3). Then react ✅ to the #lore-inbox note (Step 4) as usual.
+
+If `slack-link` returns `ok:false`, it's a plain typed note — handle it as Step 3.
 
 ## Step 3 — distill + write each note
 
