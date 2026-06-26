@@ -4,7 +4,7 @@ import { reposInvolved } from './repos.js';
 
 const exec = promisify(execFile);
 
-// A Jira-style ticket embedded in a branch name, e.g. LMAPP-1495-fix-foo -> LMAPP-1495.
+// A Jira-style ticket embedded in a branch name, e.g. PROJ-1495-fix-foo -> PROJ-1495.
 const TICKET = /\b([A-Z][A-Z0-9]+-\d+)\b/;
 
 export function extractTicket(branch: string | null): string | null {

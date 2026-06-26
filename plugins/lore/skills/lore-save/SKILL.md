@@ -37,7 +37,7 @@ LORE autocontext "$(pwd)"
 It returns JSON: `{branch, ticket, repos, prs, warnings}`.
 
 - **repos_involved** ← `repos`. **epic / subtasks** ← `ticket` (the Jira id baked into the
-  branch name, e.g. `LMAPP-1495`). **prs** ← `prs` (map each to a PR record:
+  branch name, e.g. `PROJ-1495`). **prs** ← `prs` (map each to a PR record:
   `{repo, pr, status}`; `merged_date` when status is merged). If `warnings` mentions gh,
   PRs weren't detected — fill them by hand if you know them.
 - **project**: `LORE register "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"` → slug

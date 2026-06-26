@@ -6,8 +6,6 @@ package is the **deterministic core lib** (Phase A). LLM steps (distillation, an
 assembly, worth-storing filter, retrieval routing) live in the `/lore-*` skills and the MCP
 read tool, not here — so this lib is pure functions, fully unit-tested.
 
-Design doc + reviews: `~/.gstack/projects/work/abhinandanmishra-unknown-design-20260625-011408.md`.
-
 ## Layout
 
 ```
@@ -41,8 +39,8 @@ npm test         # vitest, 65 tests
 npm run typecheck
 ```
 
-Public npm registry is pinned in `.npmrc` (this repo is standalone, not on the work
-registry). Store root overridable via `$LORE_HOME` (defaults to `~/.lore`).
+Public npm registry is pinned in `.npmrc` (this repo is standalone). Store root overridable
+via `$LORE_HOME` (defaults to `~/.lore`).
 
 ## Status
 
