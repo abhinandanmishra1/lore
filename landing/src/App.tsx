@@ -105,6 +105,9 @@ function Nav() {
           <a href="#flow" className="transition hover:text-parchment">
             The loop
           </a>
+          <a href="#impact" className="transition hover:text-parchment">
+            Impact
+          </a>
         </div>
       </div>
     </nav>
@@ -316,6 +319,88 @@ function Capabilities() {
   );
 }
 
+const IMPACT = [
+  {
+    scope: 'You',
+    tag: 'Personal',
+    headline: 'Never re-explain your own work.',
+    points: [
+      'Decisions, fixes, and plans persist across every session — no cold starts.',
+      'Ask “why did we build it this way?” and get a sourced answer, not a guess.',
+      'Capture is one command; recall routes to the right entry without loading the whole store.',
+    ],
+  },
+  {
+    scope: 'Your team',
+    tag: 'Team',
+    headline: 'The rationale outlives the thread.',
+    points: [
+      'New engineers read the why — linked to the tickets and PRs that made it.',
+      'Feature histories replay from first decision to current status on demand.',
+      'Knowledge lives in the store, not in one person’s head. Bus-factor drops.',
+    ],
+  },
+  {
+    scope: 'Your org',
+    tag: 'Org',
+    headline: 'Institutional memory that survives.',
+    points: [
+      'Reorgs, handoffs, and attrition stop erasing how the software was built.',
+      'Searchable, dated history across every project — an audit trail by default.',
+      'Patterns get reused across teams instead of quietly reinvented.',
+    ],
+  },
+];
+
+function Impact() {
+  return (
+    <section id="impact" className="mx-auto max-w-6xl px-6 py-24">
+      <Reveal>
+        <p className="mb-3 text-center font-mono text-xs uppercase tracking-widest text-amber-soft">
+          Why it compounds
+        </p>
+        <h2 className="mx-auto max-w-2xl text-center font-serif text-4xl leading-tight md:text-5xl">
+          One save. Three rings of impact.
+        </h2>
+        <p className="mx-auto mt-6 max-w-xl text-center text-lg leading-relaxed text-parchment/65">
+          The same entry that saves you a re-explanation today becomes your team’s onboarding
+          tomorrow — and your org’s institutional memory after that.
+        </p>
+      </Reveal>
+      <div className="mt-16 grid gap-6 md:grid-cols-3">
+        {IMPACT.map((tier, i) => (
+          <Reveal key={tier.tag} delay={i * 120}>
+            <div className="relative h-full overflow-hidden rounded-2xl border border-white/5 bg-ink-soft/50 p-8">
+              <div
+                className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-amber/10 blur-2xl"
+                style={{ opacity: 0.35 + i * 0.25 }}
+              />
+              <div className="mb-5 flex items-center gap-3">
+                <span className="font-mono text-xs uppercase tracking-widest text-ember">
+                  {tier.tag}
+                </span>
+                <span className="h-px flex-1 bg-gradient-to-r from-amber/30 to-transparent" />
+              </div>
+              <h3 className="font-serif text-2xl text-amber">{tier.scope}</h3>
+              <p className="mt-2 font-serif text-lg leading-snug text-parchment/90">
+                {tier.headline}
+              </p>
+              <ul className="mt-5 space-y-3">
+                {tier.points.map((p) => (
+                  <li key={p} className="flex gap-3 text-sm leading-relaxed text-parchment/60">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber/60" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Closing() {
   return (
     <section id="how" className="grain relative mx-auto max-w-6xl px-6 py-28 text-center">
@@ -363,6 +448,7 @@ export default function App() {
       <Problem />
       <Flow />
       <Capabilities />
+      <Impact />
       <Closing />
       <Footer />
     </div>
