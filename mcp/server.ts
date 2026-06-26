@@ -8,12 +8,12 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { loreHome } from '../src/paths.js';
 import { listProjects, listFeatures, driftAll } from '../src/store.js';
-import { rangeQuery, loadFeature, findEntry } from '../src/query.js';
+import { rangeQuery, loadFeature, findEntry, searchQuery } from '../src/query.js';
 
 const home = loreHome();
 const json = (data: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(data) }] });
 
-const server = new McpServer({ name: 'lore', version: '0.1.0' });
+const server = new McpServer({ name: 'lore', version: '0.2.0' });
 
 server.registerTool(
   'lore_projects',
@@ -61,6 +61,18 @@ server.registerTool(
     const entry = await findEntry(home, id);
     return json(entry ?? { error: `not found: ${id}` });
   },
+);
+
+server.registerTool(
+  'lore_search',
+  {
+    description: 'Ranked full-text search across ALL entries (title, body, files, repos). Use when you do NOT already know the project/feature — e.g. "find anything about debounce", "what decisions touched auth.ts". Returns ranked id + title + snippet; drill in with lore_feature or lore_entry.',
+    inputSchema: {
+      query: z.string().describe('search terms (space-separated; all must match)'),
+      limit: z.number().optional().describe('max hits to return (default 20)'),
+    },
+  },
+  async ({ query, limit }) => json(await searchQuery(home, query, limit ?? 20)),
 );
 
 server.registerTool(

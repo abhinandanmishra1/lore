@@ -114,17 +114,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path6) {
-      const ctrl = callVisitor(key, node, visitor, path6);
+    function visit_(key, node, visitor, path7) {
+      const ctrl = callVisitor(key, node, visitor, path7);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path6, ctrl);
-        return visit_(key, ctrl, visitor, path6);
+        replaceNode(key, path7, ctrl);
+        return visit_(key, ctrl, visitor, path7);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path6 = Object.freeze(path6.concat(node));
+          path7 = Object.freeze(path7.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path6);
+            const ci = visit_(i, node.items[i], visitor, path7);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -135,13 +135,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path6 = Object.freeze(path6.concat(node));
-          const ck = visit_("key", node.key, visitor, path6);
+          path7 = Object.freeze(path7.concat(node));
+          const ck = visit_("key", node.key, visitor, path7);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path6);
+          const cv = visit_("value", node.value, visitor, path7);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -162,17 +162,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path6) {
-      const ctrl = await callVisitor(key, node, visitor, path6);
+    async function visitAsync_(key, node, visitor, path7) {
+      const ctrl = await callVisitor(key, node, visitor, path7);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path6, ctrl);
-        return visitAsync_(key, ctrl, visitor, path6);
+        replaceNode(key, path7, ctrl);
+        return visitAsync_(key, ctrl, visitor, path7);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path6 = Object.freeze(path6.concat(node));
+          path7 = Object.freeze(path7.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path6);
+            const ci = await visitAsync_(i, node.items[i], visitor, path7);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -183,13 +183,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path6 = Object.freeze(path6.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path6);
+          path7 = Object.freeze(path7.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path7);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path6);
+          const cv = await visitAsync_("value", node.value, visitor, path7);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -216,23 +216,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path6) {
+    function callVisitor(key, node, visitor, path7) {
       if (typeof visitor === "function")
-        return visitor(key, node, path6);
+        return visitor(key, node, path7);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path6);
+        return visitor.Map?.(key, node, path7);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path6);
+        return visitor.Seq?.(key, node, path7);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path6);
+        return visitor.Pair?.(key, node, path7);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path6);
+        return visitor.Scalar?.(key, node, path7);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path6);
+        return visitor.Alias?.(key, node, path7);
       return void 0;
     }
-    function replaceNode(key, path6, node) {
-      const parent = path6[path6.length - 1];
+    function replaceNode(key, path7, node) {
+      const parent = path7[path7.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -842,10 +842,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path6, value) {
+    function collectionFromPath(schema, path7, value) {
       let v = value;
-      for (let i = path6.length - 1; i >= 0; --i) {
-        const k = path6[i];
+      for (let i = path7.length - 1; i >= 0; --i) {
+        const k = path7[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -864,7 +864,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path6) => path6 == null || typeof path6 === "object" && !!path6[Symbol.iterator]().next().done;
+    var isEmptyPath = (path7) => path7 == null || typeof path7 === "object" && !!path7[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -894,11 +894,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path6, value) {
-        if (isEmptyPath(path6))
+      addIn(path7, value) {
+        if (isEmptyPath(path7))
           this.add(value);
         else {
-          const [key, ...rest] = path6;
+          const [key, ...rest] = path7;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -912,8 +912,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path6) {
-        const [key, ...rest] = path6;
+      deleteIn(path7) {
+        const [key, ...rest] = path7;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -927,8 +927,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path6, keepScalar) {
-        const [key, ...rest] = path6;
+      getIn(path7, keepScalar) {
+        const [key, ...rest] = path7;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -946,8 +946,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path6) {
-        const [key, ...rest] = path6;
+      hasIn(path7) {
+        const [key, ...rest] = path7;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -957,8 +957,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path6, value) {
-        const [key, ...rest] = path6;
+      setIn(path7, value) {
+        const [key, ...rest] = path7;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3473,9 +3473,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path6, value) {
+      addIn(path7, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path6, value);
+          this.contents.addIn(path7, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3550,14 +3550,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path6) {
-        if (Collection.isEmptyPath(path6)) {
+      deleteIn(path7) {
+        if (Collection.isEmptyPath(path7)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path6) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path7) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3572,10 +3572,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path6, keepScalar) {
-        if (Collection.isEmptyPath(path6))
+      getIn(path7, keepScalar) {
+        if (Collection.isEmptyPath(path7))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path6, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path7, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3586,10 +3586,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path6) {
-        if (Collection.isEmptyPath(path6))
+      hasIn(path7) {
+        if (Collection.isEmptyPath(path7))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path6) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path7) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3606,13 +3606,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path6, value) {
-        if (Collection.isEmptyPath(path6)) {
+      setIn(path7, value) {
+        if (Collection.isEmptyPath(path7)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path6), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path7), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path6, value);
+          this.contents.setIn(path7, value);
         }
       }
       /**
@@ -5572,9 +5572,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path6) => {
+    visit.itemAtPath = (cst, path7) => {
       let item = cst;
-      for (const [field, index] of path6) {
+      for (const [field, index] of path7) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5583,23 +5583,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path6) => {
-      const parent = visit.itemAtPath(cst, path6.slice(0, -1));
-      const field = path6[path6.length - 1][0];
+    visit.parentCollection = (cst, path7) => {
+      const parent = visit.itemAtPath(cst, path7.slice(0, -1));
+      const field = path7[path7.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path6, item, visitor) {
-      let ctrl = visitor(item, path6);
+    function _visit(path7, item, visitor) {
+      let ctrl = visitor(item, path7);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path6.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path7.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5610,10 +5610,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path6);
+            ctrl = ctrl(item, path7);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path6) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path7) : ctrl;
     }
     exports.visit = visit;
   }
@@ -6915,14 +6915,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs4 = this.flowScalar(this.type);
+              const fs5 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs4, sep: [] });
+                map.items.push({ start, key: fs5, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs4);
+                this.stack.push(fs5);
               } else {
-                Object.assign(it, { key: fs4, sep: [] });
+                Object.assign(it, { key: fs5, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -7050,13 +7050,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs4 = this.flowScalar(this.type);
+              const fs5 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs4, sep: [] });
+                fc.items.push({ start: [], key: fs5, sep: [] });
               else if (it.sep)
-                this.stack.push(fs4);
+                this.stack.push(fs5);
               else
-                Object.assign(it, { key: fs4, sep: [] });
+                Object.assign(it, { key: fs5, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -7904,6 +7904,77 @@ async function findEntry(home, id) {
   }
   return null;
 }
+var W_TITLE = 5;
+var W_BODY = 1;
+var W_BODY_MAX = 6;
+var W_FILE = 3;
+var W_FEATURE = 4;
+function tokenize(q) {
+  return q.toLowerCase().split(/[^a-z0-9._/-]+/).map((t) => t.trim()).filter((t) => t.length > 1);
+}
+function countOccurrences(haystack, needle) {
+  if (!needle) return 0;
+  let n = 0;
+  let i = haystack.indexOf(needle);
+  while (i !== -1) {
+    n++;
+    i = haystack.indexOf(needle, i + needle.length);
+  }
+  return n;
+}
+function buildSnippet(body, terms) {
+  const lines = body.split("\n").map((l) => l.trim()).filter(Boolean);
+  const hit = lines.find((l) => {
+    const low = l.toLowerCase();
+    return terms.some((t) => low.includes(t));
+  });
+  const chosen = hit ?? lines[0] ?? "";
+  return chosen.length > 160 ? `${chosen.slice(0, 157)}...` : chosen;
+}
+async function searchQuery(home, query, limit = 20) {
+  const terms = tokenize(query);
+  const hits = [];
+  if (terms.length === 0) return { query, count: 0, hits: [] };
+  for (const project of await listProjects(home)) {
+    for (const f of await listFeatures(home, project)) {
+      const entries = await readFeatureEntries(home, project, f.feature, f.initiative);
+      for (const e of entries) {
+        const fm = e.frontmatter;
+        const titleLow = fm.title.toLowerCase();
+        const bodyLow = e.body.toLowerCase();
+        const featureLow = fm.feature.toLowerCase();
+        const fileText = Object.values(fm.files ?? {}).flat().concat(fm.repos_involved).join(" ").toLowerCase();
+        let score = 0;
+        let matched = 0;
+        for (const t of terms) {
+          let termScore = 0;
+          if (titleLow.includes(t)) termScore += W_TITLE;
+          if (featureLow.includes(t)) termScore += W_FEATURE;
+          if (fileText.includes(t)) termScore += W_FILE;
+          termScore += Math.min(countOccurrences(bodyLow, t) * W_BODY, W_BODY_MAX);
+          if (termScore > 0) matched++;
+          score += termScore;
+        }
+        if (matched < terms.length || score === 0) continue;
+        hits.push({
+          id: fm.id,
+          project,
+          feature: f.feature,
+          initiative: f.initiative,
+          type: fm.type,
+          title: fm.title,
+          date: fm.date,
+          score,
+          snippet: buildSnippet(e.body, terms),
+          created_at: fm.created_at
+        });
+      }
+    }
+  }
+  hits.sort((a, b) => b.score - a.score || (a.created_at < b.created_at ? 1 : -1));
+  const top = hits.slice(0, limit).map(({ created_at: _drop, ...h }) => h);
+  return { query, count: hits.length, hits: top };
+}
 
 // src/repos.ts
 import { execFile } from "node:child_process";
@@ -7928,6 +7999,97 @@ async function reposInvolved(dirs) {
     if (repo) names.add(repo);
   }
   return [...names].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+}
+
+// src/autocontext.ts
+import { execFile as execFile2 } from "node:child_process";
+import { promisify as promisify2 } from "node:util";
+var exec2 = promisify2(execFile2);
+var TICKET = /\b([A-Z][A-Z0-9]+-\d+)\b/;
+function extractTicket(branch) {
+  if (!branch) return null;
+  return TICKET.exec(branch)?.[1] ?? null;
+}
+async function currentBranch(dir) {
+  try {
+    const { stdout } = await exec2("git", ["-C", dir, "branch", "--show-current"], { timeout: 5e3 });
+    const b = stdout.trim();
+    return b || null;
+  } catch {
+    return null;
+  }
+}
+function ghStatus(state, isDraft) {
+  if (isDraft) return "draft";
+  const s = state.toLowerCase();
+  if (s === "merged") return "merged";
+  if (s === "closed") return "closed";
+  return "open";
+}
+async function detectPRs(dir, branch, repo, warnings) {
+  if (!repo) return [];
+  try {
+    const { stdout } = await exec2(
+      "gh",
+      ["pr", "list", "--head", branch, "--state", "all", "--json", "number,title,state,url,isDraft"],
+      { cwd: dir, timeout: 8e3 }
+    );
+    const raw = JSON.parse(stdout);
+    return raw.map((p) => ({ repo, pr: p.number, title: p.title, status: ghStatus(p.state, p.isDraft), url: p.url }));
+  } catch {
+    warnings.push("gh unavailable or unauthenticated \u2014 PRs not auto-detected");
+    return [];
+  }
+}
+async function autoContext(dir) {
+  const warnings = [];
+  const branch = await currentBranch(dir);
+  const ticket = extractTicket(branch);
+  const repos = await reposInvolved([dir]);
+  const repo = repos[0] ?? null;
+  const prs = branch ? await detectPRs(dir, branch, repo, warnings) : [];
+  return { branch, ticket, repos, prs, warnings };
+}
+
+// src/slackCursor.ts
+import { promises as fs4 } from "node:fs";
+import path6 from "node:path";
+function cursorPath(home) {
+  return path6.join(metadataDir(home), ".slack-cursor");
+}
+async function getSlackCursor(home) {
+  try {
+    const raw = await fs4.readFile(cursorPath(home), "utf8");
+    const ts = raw.trim();
+    return ts || null;
+  } catch {
+    return null;
+  }
+}
+async function setSlackCursor(home, ts) {
+  await fs4.mkdir(metadataDir(home), { recursive: true });
+  await fs4.writeFile(cursorPath(home), `${ts.trim()}
+`, "utf8");
+}
+
+// src/slackLink.ts
+var ARCHIVE = /\/archives\/([A-Z0-9]+)\/p(\d{10})(\d{6})/;
+function parseSlackPermalink(url) {
+  const m = ARCHIVE.exec(url);
+  if (!m) return null;
+  const [, channelId, secs, micros] = m;
+  const link = { channelId, ts: `${secs}.${micros}` };
+  const q = url.indexOf("?");
+  if (q !== -1) {
+    const params = new URLSearchParams(url.slice(q + 1));
+    const thread = params.get("thread_ts");
+    if (thread) link.threadTs = thread;
+  }
+  return link;
+}
+function findSlackPermalink(text) {
+  const m = /https?:\/\/[^\s]*\/archives\/[A-Z0-9]+\/p\d{16}[^\s]*/.exec(text);
+  return m ? m[0] : null;
 }
 
 // src/cli.ts
@@ -8029,14 +8191,52 @@ async function main() {
       out(found ? { ok: true, entry: found } : { ok: false, error: `not found: ${id}` });
       return;
     }
+    case "search": {
+      let limit = 20;
+      const terms = [];
+      for (let i = 0; i < args.length; i++) {
+        const a = args[i];
+        if (a === "--limit") {
+          limit = Number(args[++i]) || 20;
+        } else if (a !== void 0) {
+          terms.push(a);
+        }
+      }
+      if (terms.length === 0) throw new Error("search needs <terms>");
+      out({ ok: true, ...await searchQuery(home, terms.join(" "), limit) });
+      return;
+    }
     case "repos": {
       const dirs = args.length > 0 ? args : [process2.cwd()];
       out({ ok: true, repos: await reposInvolved(dirs) });
       return;
     }
+    case "autocontext": {
+      const dir = args[0] ?? process2.cwd();
+      out({ ok: true, ...await autoContext(dir) });
+      return;
+    }
+    case "slack-cursor": {
+      const [ts] = args;
+      if (ts) {
+        await setSlackCursor(home, ts);
+        out({ ok: true, cursor: ts });
+      } else {
+        out({ ok: true, cursor: await getSlackCursor(home) });
+      }
+      return;
+    }
+    case "slack-link": {
+      const arg = args[0] ?? (await readStdin()).trim();
+      if (!arg) throw new Error("slack-link needs a permalink (arg or stdin)");
+      const url = findSlackPermalink(arg) ?? arg;
+      const parsed = parseSlackPermalink(url);
+      out(parsed ? { ok: true, ...parsed } : { ok: false, error: "not a Slack permalink" });
+      return;
+    }
     default:
       process2.stderr.write(
-        "usage: lore <command>\n  scaffold                      create the ~/.lore tree\n  register [repoPath]           register a project (slug from path)\n  ingest-scan <path...>         list importable markdown (dedup by source_hash)\n  put                           write one entry from JSON on stdin\n  reindex                       rebuild all index maps + daily logs from entries\n  drift                         report cache drift (hash + index-count mismatches)\n  range <from> <to>             time-range query over daily logs (ISO days)\n  feature <project> <feature> [initiative]   load a feature's entries\n  entry <id>                    fetch one entry by id\n  repos [dir...]                repo names touched (git toplevel basenames)\n"
+        "usage: lore <command>\n  scaffold                      create the ~/.lore tree\n  register [repoPath]           register a project (slug from path)\n  ingest-scan <path...>         list importable markdown (dedup by source_hash)\n  put                           write one entry from JSON on stdin\n  reindex                       rebuild all index maps + daily logs from entries\n  drift                         report cache drift (hash + index-count mismatches)\n  range <from> <to>             time-range query over daily logs (ISO days)\n  feature <project> <feature> [initiative]   load a feature's entries\n  entry <id>                    fetch one entry by id\n  search <terms> [--limit N]    ranked full-text search across all entries\n  autocontext [dir]             auto-detect branch/ticket/PRs/repos as JSON\n  slack-cursor [ts]             get (no arg) or set the Slack inbox drain cursor\n  slack-link <url>              parse a Slack permalink -> {channelId, ts, threadTs}\n  repos [dir...]                repo names touched (git toplevel basenames)\n"
       );
       process2.exitCode = 2;
   }

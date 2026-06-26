@@ -28665,11 +28665,82 @@ async function findEntry(home2, id) {
   }
   return null;
 }
+var W_TITLE = 5;
+var W_BODY = 1;
+var W_BODY_MAX = 6;
+var W_FILE = 3;
+var W_FEATURE = 4;
+function tokenize(q) {
+  return q.toLowerCase().split(/[^a-z0-9._/-]+/).map((t) => t.trim()).filter((t) => t.length > 1);
+}
+function countOccurrences(haystack, needle) {
+  if (!needle) return 0;
+  let n = 0;
+  let i = haystack.indexOf(needle);
+  while (i !== -1) {
+    n++;
+    i = haystack.indexOf(needle, i + needle.length);
+  }
+  return n;
+}
+function buildSnippet(body, terms) {
+  const lines = body.split("\n").map((l) => l.trim()).filter(Boolean);
+  const hit = lines.find((l) => {
+    const low = l.toLowerCase();
+    return terms.some((t) => low.includes(t));
+  });
+  const chosen = hit ?? lines[0] ?? "";
+  return chosen.length > 160 ? `${chosen.slice(0, 157)}...` : chosen;
+}
+async function searchQuery(home2, query, limit = 20) {
+  const terms = tokenize(query);
+  const hits = [];
+  if (terms.length === 0) return { query, count: 0, hits: [] };
+  for (const project of await listProjects(home2)) {
+    for (const f of await listFeatures(home2, project)) {
+      const entries = await readFeatureEntries(home2, project, f.feature, f.initiative);
+      for (const e of entries) {
+        const fm = e.frontmatter;
+        const titleLow = fm.title.toLowerCase();
+        const bodyLow = e.body.toLowerCase();
+        const featureLow = fm.feature.toLowerCase();
+        const fileText = Object.values(fm.files ?? {}).flat().concat(fm.repos_involved).join(" ").toLowerCase();
+        let score = 0;
+        let matched = 0;
+        for (const t of terms) {
+          let termScore = 0;
+          if (titleLow.includes(t)) termScore += W_TITLE;
+          if (featureLow.includes(t)) termScore += W_FEATURE;
+          if (fileText.includes(t)) termScore += W_FILE;
+          termScore += Math.min(countOccurrences(bodyLow, t) * W_BODY, W_BODY_MAX);
+          if (termScore > 0) matched++;
+          score += termScore;
+        }
+        if (matched < terms.length || score === 0) continue;
+        hits.push({
+          id: fm.id,
+          project,
+          feature: f.feature,
+          initiative: f.initiative,
+          type: fm.type,
+          title: fm.title,
+          date: fm.date,
+          score,
+          snippet: buildSnippet(e.body, terms),
+          created_at: fm.created_at
+        });
+      }
+    }
+  }
+  hits.sort((a, b) => b.score - a.score || (a.created_at < b.created_at ? 1 : -1));
+  const top = hits.slice(0, limit).map(({ created_at: _drop, ...h }) => h);
+  return { query, count: hits.length, hits: top };
+}
 
 // mcp/server.ts
 var home = loreHome();
 var json = (data) => ({ content: [{ type: "text", text: JSON.stringify(data) }] });
-var server = new McpServer({ name: "lore", version: "0.1.0" });
+var server = new McpServer({ name: "lore", version: "0.2.0" });
 server.registerTool(
   "lore_projects",
   {
@@ -28713,6 +28784,17 @@ server.registerTool(
     const entry = await findEntry(home, id);
     return json(entry ?? { error: `not found: ${id}` });
   }
+);
+server.registerTool(
+  "lore_search",
+  {
+    description: 'Ranked full-text search across ALL entries (title, body, files, repos). Use when you do NOT already know the project/feature \u2014 e.g. "find anything about debounce", "what decisions touched auth.ts". Returns ranked id + title + snippet; drill in with lore_feature or lore_entry.',
+    inputSchema: {
+      query: external_exports.string().describe("search terms (space-separated; all must match)"),
+      limit: external_exports.number().optional().describe("max hits to return (default 20)")
+    }
+  },
+  async ({ query, limit }) => json(await searchQuery(home, query, limit ?? 20))
 );
 server.registerTool(
   "lore_drift",
