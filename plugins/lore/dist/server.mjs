@@ -28774,7 +28774,7 @@ ${FENCE2}`);
 // mcp/server.ts
 var home = loreHome();
 var json = (data) => ({ content: [{ type: "text", text: JSON.stringify(data) }] });
-var server = new McpServer({ name: "lore", version: "0.2.0" });
+var server = new McpServer({ name: "lore", version: "0.3.0" });
 server.registerTool(
   "lore_projects",
   {

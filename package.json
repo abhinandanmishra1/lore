@@ -1,6 +1,6 @@
 {
   "name": "lore-core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Lore — engineering memory for Claude. Deterministic core lib (schema v2).",
   "type": "module",
   "private": true,
