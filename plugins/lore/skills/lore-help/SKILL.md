@@ -19,6 +19,8 @@ Print this, grouped, one line each:
 - `/lore-setup` — initialize the store, register a repo, optionally import existing notes.
 - `/lore-save` — save a decision / fix / status / plan as a memory entry (auto-fills branch, ticket, PRs, repos).
 - `/lore-save-chat` — distill the current Claude conversation into an entry.
+- `/lore-context-save` — save/refresh the repo-orientation doc a fresh session auto-loads.
+- `/lore-context-get` — show the full saved repo-orientation doc.
 - `/lore-ask` — answer a question from memory (routes to the right retrieval primitive).
 - `/lore-drain` — pull notes you posted to the #lore-inbox Slack channel into the store.
 - `/lore-reindex` — rebuild index maps + daily logs from entries; report drift.
@@ -31,7 +33,12 @@ Print this, grouped, one line each:
 - `lore_range` — what happened between two dates.
 - `lore_feature` — full history of one feature.
 - `lore_entry` — one entry by id.
+- `lore_context` — the saved repo-orientation doc for a project.
 - `lore_drift` — are the caches stale?
+
+**Automatic (no command — plugin hooks)**
+- SessionStart — injects the repo's saved context summary + any unsaved prior sessions.
+- SessionEnd — spools the session so it can be distilled next time even if you forgot to save.
 
 Close with: "Want detail on one? `/lore-help <name>`."
 

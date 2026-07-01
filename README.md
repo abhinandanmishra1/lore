@@ -48,12 +48,25 @@ Skills, invoked from any Claude Code session:
 |---|---|
 | `/lore:lore-setup` | Scaffold the store and register the repo |
 | `/lore:lore-save` | Capture a decision, fix, status, or walkthrough |
+| `/lore:lore-context-save` | Save/refresh the repo-orientation doc a fresh session auto-loads |
+| `/lore:lore-context-get` | Show the full saved repo-orientation doc |
 | `/lore:lore-ask` | Ask in plain language; get a sourced answer |
 | `/lore:lore-reindex` | Rebuild the index maps from entries |
 
 The MCP read tools (`lore_projects`, `lore_range`, `lore_feature`, `lore_entry`,
-`lore_drift`) auto-register and are callable from any normal conversation — so relevant
-history surfaces without you asking for it.
+`lore_context`, `lore_drift`) auto-register and are callable from any normal conversation —
+so relevant history surfaces without you asking for it.
+
+### Automatic (plugin hooks, no command)
+
+Two hooks run themselves so memory keeps up even when you forget:
+
+- **On session start** — the repo's saved context summary is injected, so a fresh session
+  starts oriented. If none exists yet, you're nudged to build one after exploring. Any
+  prior session that ended unsaved is surfaced for distilling.
+- **On session end** — the session is spooled (path only) so the next start in that repo can
+  distill it into Lore. Manual `/lore-save` still works and is preferred; this is the safety
+  net if you forget.
 
 Memory is stored under `~/.lore` by default; override with `$LORE_HOME`.
 

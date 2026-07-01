@@ -6884,12 +6884,12 @@ var require_dist = __commonJS({
         throw new Error(`Unknown format "${name}"`);
       return f;
     };
-    function addFormats(ajv, list, fs3, exportName) {
+    function addFormats(ajv, list, fs4, exportName) {
       var _a;
       var _b;
       (_a = (_b = ajv.opts.code).formats) !== null && _a !== void 0 ? _a : _b.formats = (0, codegen_1._)`require("ajv-formats/dist/formats").${exportName}`;
       for (const f of list)
-        ajv.addFormat(f, fs3[f]);
+        ajv.addFormat(f, fs4[f]);
     }
     module.exports = exports = formatsPlugin;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -13775,14 +13775,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs3 = this.flowScalar(this.type);
+              const fs4 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs3, sep: [] });
+                map.items.push({ start, key: fs4, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs3);
+                this.stack.push(fs4);
               } else {
-                Object.assign(it, { key: fs3, sep: [] });
+                Object.assign(it, { key: fs4, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -13910,13 +13910,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs3 = this.flowScalar(this.type);
+              const fs4 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs3, sep: [] });
+                fc.items.push({ start: [], key: fs4, sep: [] });
               else if (it.sep)
-                this.stack.push(fs3);
+                this.stack.push(fs4);
               else
-                Object.assign(it, { key: fs3, sep: [] });
+                Object.assign(it, { key: fs4, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -28458,6 +28458,9 @@ function entriesDir(home2, project, feature, initiative) {
 function featureIndexPath(home2, project, feature, initiative) {
   return path.join(featureDir(home2, project, feature, initiative), "index.md");
 }
+function contextPath(home2, project) {
+  return path.join(projectDir(home2, project), "context.md");
+}
 function metadataDir(home2) {
   return path.join(home2, "metadata");
 }
@@ -28737,10 +28740,41 @@ async function searchQuery(home2, query, limit = 20) {
   return { query, count: hits.length, hits: top };
 }
 
+// src/context.ts
+var import_yaml2 = __toESM(require_dist2(), 1);
+import { promises as fs3 } from "node:fs";
+var FENCE2 = "---";
+async function getContext(home2, project) {
+  let raw;
+  try {
+    raw = await fs3.readFile(contextPath(home2, project), "utf8");
+  } catch {
+    return null;
+  }
+  const text = raw.replace(/^﻿/, "");
+  const bare = (body2) => ({ project, summary: "", body: body2.trim(), updated_at: "" });
+  if (!text.startsWith(`${FENCE2}
+`) && !text.startsWith(`${FENCE2}\r
+`)) return bare(text);
+  const rest = text.slice(text.indexOf("\n") + 1);
+  const closeIdx = rest.indexOf(`
+${FENCE2}`);
+  if (closeIdx === -1) return bare(text);
+  const yamlBlock = rest.slice(0, closeIdx);
+  const body = rest.slice(closeIdx + 1 + FENCE2.length).replace(/^\r?\n/, "").trim();
+  const fm = import_yaml2.default.parse(yamlBlock) ?? {};
+  return {
+    project: fm.project ?? project,
+    summary: fm.summary ?? "",
+    body,
+    updated_at: fm.updated_at ?? ""
+  };
+}
+
 // mcp/server.ts
 var home = loreHome();
 var json = (data) => ({ content: [{ type: "text", text: JSON.stringify(data) }] });
-var server = new McpServer({ name: "lore", version: "0.2.0" });
+var server = new McpServer({ name: "lore", version: "0.3.0" });
 server.registerTool(
   "lore_projects",
   {
@@ -28795,6 +28829,14 @@ server.registerTool(
     }
   },
   async ({ query, limit }) => json(await searchQuery(home, query, limit ?? 20))
+);
+server.registerTool(
+  "lore_context",
+  {
+    description: 'Get the saved repo-orientation doc for a project (architecture, conventions, where things live, gotchas). Use at the start of work in a repo, or when asked "what do we know about this codebase". Returns {summary, body, updated_at} or an error if none saved yet.',
+    inputSchema: { project: external_exports.string().describe("project slug \u2014 the repo name, lowercased") }
+  },
+  async ({ project }) => json(await getContext(home, project) ?? { error: `no context saved for ${project}` })
 );
 server.registerTool(
   "lore_drift",
