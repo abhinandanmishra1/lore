@@ -43,3 +43,10 @@ export {
   type RangeDay,
 } from './query.js';
 export { detectRepo, reposInvolved } from './repos.js';
+export { getContext, putContext, type RepoContext, type PutContextInput } from './context.js';
+export {
+  spoolSession,
+  listPending,
+  clearPending,
+  type PendingSession,
+} from './spool.js';

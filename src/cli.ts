@@ -13,8 +13,10 @@ import {
 } from './store.js';
 import { discoverCandidates } from './ingest.js';
 import { rangeQuery, loadFeature, findEntry, searchQuery } from './query.js';
-import { reposInvolved } from './repos.js';
+import { reposInvolved, detectRepo } from './repos.js';
 import { autoContext } from './autocontext.js';
+import { getContext, putContext } from './context.js';
+import { spoolSession, listPending, clearPending, type PendingSession } from './spool.js';
 import { getSlackCursor, setSlackCursor } from './slackCursor.js';
 import { parseSlackPermalink, findSlackPermalink } from './slackLink.js';
 
@@ -157,6 +159,83 @@ async function main(): Promise<void> {
       return;
     }
 
+    case 'context-put': {
+      // Write/overwrite a project's repo-orientation doc. JSON on stdin:
+      // {project?, dir?, summary, body}. project wins; else slug from dir/cwd.
+      const input = JSON.parse(await readStdin()) as {
+        project?: string;
+        dir?: string;
+        summary?: string;
+        body?: string;
+      };
+      const project = input.project ?? (await projectSlug(input.dir ?? process.cwd()));
+      const ctx = await putContext(home, {
+        project,
+        summary: required(input.summary, 'summary'),
+        body: required(input.body, 'body'),
+      });
+      out({ ok: true, project: ctx.project, updated_at: ctx.updated_at });
+      return;
+    }
+
+    case 'context-get': {
+      // `context-get`               -> context for the cwd's repo
+      // `context-get --dir <dir>`   -> context for that dir's repo
+      // `context-get <project-slug>`-> context for a named project
+      let project: string;
+      if (args[0] === '--dir') project = await projectSlug(args[1] ?? process.cwd());
+      else if (args[0]) project = args[0];
+      else project = await projectSlug(process.cwd());
+      const ctx = await getContext(home, project);
+      out(ctx ? { ok: true, exists: true, ...ctx } : { ok: true, exists: false, project });
+      return;
+    }
+
+    case 'session-start': {
+      // Runs from the plugin's SessionStart hook (Claude's payload on stdin).
+      // Emits a SessionStart hook JSON that injects: the repo's saved context
+      // summary (or a nudge to build one) + any unsaved prior sessions to distill.
+      out(await sessionStartContext(safeParse(await readStdin())));
+      return;
+    }
+
+    case 'session-end': {
+      // Runs from the plugin's SessionEnd hook. Spools the ended session (path
+      // only) so the next start in this repo can distill it. No-op outside a repo.
+      const payload = safeParse(await readStdin());
+      const cwd = str(payload.cwd) ?? process.cwd();
+      const repo = await detectRepo(cwd);
+      if (!repo) {
+        out({ ok: true, spooled: false, reason: 'cwd not in a git repo' });
+        return;
+      }
+      const ctx = await autoContext(cwd);
+      const pending: PendingSession = {
+        session_id: str(payload.session_id) ?? 'unknown',
+        cwd,
+        transcript: str(payload.transcript_path) ?? null,
+        branch: ctx.branch,
+        repos: ctx.repos.length ? ctx.repos : [repo],
+        ended_at: new Date().toISOString(),
+        reason: str(payload.reason),
+      };
+      await spoolSession(home, pending);
+      out({ ok: true, spooled: true, session_id: pending.session_id });
+      return;
+    }
+
+    case 'session-pending': {
+      out({ ok: true, pending: await listPending(home) });
+      return;
+    }
+
+    case 'session-clear': {
+      const id = args[0];
+      if (!id) throw new Error('session-clear needs <session_id>');
+      out({ ok: true, cleared: await clearPending(home, id), session_id: id });
+      return;
+    }
+
     case 'slack-cursor': {
       const [ts] = args;
       if (ts) {
@@ -193,6 +272,12 @@ async function main(): Promise<void> {
           '  entry <id>                    fetch one entry by id\n' +
           '  search <terms> [--limit N]    ranked full-text search across all entries\n' +
           '  autocontext [dir]             auto-detect branch/ticket/PRs/repos as JSON\n' +
+          '  context-put                   write a repo-orientation doc from JSON on stdin\n' +
+          '  context-get [--dir d|slug]    read a repo-orientation doc (default: cwd repo)\n' +
+          '  session-start                 SessionStart hook: emit repo context + unsaved sessions\n' +
+          '  session-end                   SessionEnd hook: spool the ended session for later save\n' +
+          '  session-pending               list sessions spooled but not yet saved\n' +
+          '  session-clear <session_id>    drop a spooled session (saved or discarded)\n' +
           '  slack-cursor [ts]             get (no arg) or set the Slack inbox drain cursor\n' +
           '  slack-link <url>              parse a Slack permalink -> {channelId, ts, threadTs}\n' +
           '  repos [dir...]                repo names touched (git toplevel basenames)\n',
@@ -206,6 +291,68 @@ function required<T>(v: T | undefined, name: string): T {
     throw new Error(`put: missing required field "${name}"`);
   }
   return v;
+}
+
+// Project slug from a working dir — the repo's git-toplevel basename, matching
+// what `register` stores. Falls back to slugifying the raw dir outside a repo.
+async function projectSlug(dir: string): Promise<string> {
+  const repo = await detectRepo(dir);
+  return slugify(repo ?? dir);
+}
+
+function str(v: unknown): string | undefined {
+  return typeof v === 'string' && v.length > 0 ? v : undefined;
+}
+
+function safeParse(raw: string): Record<string, unknown> {
+  try {
+    const v = JSON.parse(raw);
+    return v && typeof v === 'object' ? (v as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+// Build the SessionStart hook payload: what a fresh session in this repo should
+// know up front. Kept compact (summary + pointers) so startup stays cheap.
+async function sessionStartContext(payload: Record<string, unknown>): Promise<unknown> {
+  const home = loreHome();
+  const cwd = str(payload.cwd) ?? process.cwd();
+  const repo = await detectRepo(cwd);
+  if (!repo) return {};
+  const project = slugify(repo);
+  const lines: string[] = [];
+
+  const ctx = await getContext(home, project);
+  if (ctx && ctx.summary) {
+    lines.push(`## Lore — saved context for "${repo}"`);
+    lines.push(ctx.summary);
+    const when = ctx.updated_at ? ` (saved ${ctx.updated_at.slice(0, 10)})` : '';
+    lines.push(
+      `Full orientation${when}: run \`lore context-get ${project}\` or use the lore MCP tools (lore_context, lore_search, lore_feature). Refresh it with /lore-context-save when the code has moved on.`,
+    );
+  } else {
+    lines.push(`## Lore — no saved context for "${repo}" yet`);
+    lines.push(
+      `Once you've explored this codebase, run /lore-context-save to store an orientation (architecture, conventions, where things live) so future sessions start informed.`,
+    );
+  }
+
+  const mine = str(payload.session_id);
+  const pending = (await listPending(home)).filter((p) => p.repos.includes(repo) && p.session_id !== mine);
+  if (pending.length) {
+    lines.push('');
+    lines.push(`### ${pending.length} unsaved prior session(s) in "${repo}"`);
+    for (const p of pending.slice(0, 5)) {
+      const at = p.ended_at.slice(0, 16).replace('T', ' ');
+      lines.push(`- ${p.session_id} — ended ${at}${p.branch ? ` on ${p.branch}` : ''}${p.transcript ? `\n  transcript: ${p.transcript}` : ''}`);
+    }
+    lines.push(
+      `If any holds a durable decision/fix/status, read its transcript and /lore-save it (also /lore-context-save if this repo still has no context), then \`lore session-clear <session_id>\`. Clear trivial ones without saving.`,
+    );
+  }
+
+  return { hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: lines.join('\n') } };
 }
 
 main().catch((err: unknown) => {

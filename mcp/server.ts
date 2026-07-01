@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { loreHome } from '../src/paths.js';
 import { listProjects, listFeatures, driftAll } from '../src/store.js';
 import { rangeQuery, loadFeature, findEntry, searchQuery } from '../src/query.js';
+import { getContext } from '../src/context.js';
 
 const home = loreHome();
 const json = (data: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(data) }] });
@@ -73,6 +74,16 @@ server.registerTool(
     },
   },
   async ({ query, limit }) => json(await searchQuery(home, query, limit ?? 20)),
+);
+
+server.registerTool(
+  'lore_context',
+  {
+    description:
+      "Get the saved repo-orientation doc for a project (architecture, conventions, where things live, gotchas). Use at the start of work in a repo, or when asked \"what do we know about this codebase\". Returns {summary, body, updated_at} or an error if none saved yet.",
+    inputSchema: { project: z.string().describe('project slug — the repo name, lowercased') },
+  },
+  async ({ project }) => json((await getContext(home, project)) ?? { error: `no context saved for ${project}` }),
 );
 
 server.registerTool(

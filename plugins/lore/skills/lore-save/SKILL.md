@@ -68,3 +68,19 @@ are handled automatically.
 
 Report each entry id written and where it landed (project / initiative / feature). If you
 wrote a `status` entry, note the feature's new current status.
+
+## Auto-save: distilling an unsaved prior session
+
+The SessionStart hook may report "unsaved prior session(s)" for this repo — sessions that
+ended without a `/lore-save` (the deferred safety net so nothing is lost if the user forgot).
+To capture one:
+
+1. Read its `transcript` (path given in the notice) to reconstruct what happened.
+2. Run Steps 1–4 above on that content. Often nothing durable happened — that's fine.
+3. Clear it from the spool either way, so it stops resurfacing:
+
+```bash
+LORE session-clear <session_id>
+```
+
+`LORE session-pending` lists everything still spooled.

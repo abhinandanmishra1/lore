@@ -72,6 +72,20 @@ export function rootIndexPath(home: string): string {
   return path.join(home, 'index.md');
 }
 
+// One living repo-orientation doc per project — what a fresh session fetches to
+// start informed (architecture, conventions, where things live). Distinct from
+// feature entries: overwritten in place, not appended.
+export function contextPath(home: string, project: string): string {
+  return path.join(projectDir(home, project), 'context.md');
+}
+
+// Deferred auto-save spool. SessionEnd drops a pending-session record here; the
+// next SessionStart in the same repo surfaces it so the model can distill it into
+// Lore even if the user forgot to /lore-save.
+export function spoolDir(home: string): string {
+  return path.join(home, 'spool');
+}
+
 // Daily metadata logs — global, primary source for time-range/count queries.
 export function metadataDir(home: string): string {
   return path.join(home, 'metadata');
