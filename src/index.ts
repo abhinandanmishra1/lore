@@ -50,3 +50,12 @@ export {
   clearPending,
   type PendingSession,
 } from './spool.js';
+export {
+  getRemoteConfig,
+  setRemoteConfig,
+  initRemoteRepo,
+  syncToRemote,
+  type RemoteConfig,
+  type InitRemoteResult,
+  type SyncResult,
+} from './remote.js';
