@@ -19,6 +19,7 @@ import { getContext, putContext } from './context.js';
 import { spoolSession, listPending, clearPending, type PendingSession } from './spool.js';
 import { getSlackCursor, setSlackCursor } from './slackCursor.js';
 import { parseSlackPermalink, findSlackPermalink } from './slackLink.js';
+import { getRemoteConfig, setRemoteConfig, initRemoteRepo, syncToRemote } from './remote.js';
 
 function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -258,6 +259,49 @@ async function main(): Promise<void> {
       return;
     }
 
+    case 'remote-get': {
+      const cfg = await getRemoteConfig(home);
+      out({ ok: true, configured: cfg !== null, config: cfg });
+      return;
+    }
+
+    case 'remote-set': {
+      // `remote-set <repoUrl> [branch]`
+      const repoUrl = args[0];
+      if (!repoUrl) throw new Error('remote-set needs <repoUrl>');
+      const branch = args[1] ?? 'main';
+      const cfg = { enabled: true, repo: repoUrl, branch };
+      await setRemoteConfig(home, cfg);
+      const result = await initRemoteRepo(home, repoUrl, branch);
+      out({ ok: true, config: cfg, ...result });
+      return;
+    }
+
+    case 'remote-disable': {
+      const cfg = await getRemoteConfig(home);
+      if (!cfg) {
+        out({ ok: true, message: 'no remote configured' });
+        return;
+      }
+      await setRemoteConfig(home, { ...cfg, enabled: false });
+      out({ ok: true, message: 'remote sync disabled' });
+      return;
+    }
+
+    case 'remote-enable': {
+      const cfg = await getRemoteConfig(home);
+      if (!cfg) throw new Error('no remote configured — run remote-set first');
+      await setRemoteConfig(home, { ...cfg, enabled: true });
+      out({ ok: true, config: cfg });
+      return;
+    }
+
+    case 'remote-sync': {
+      const result = await syncToRemote(home);
+      out(result);
+      return;
+    }
+
     default:
       process.stderr.write(
         'usage: lore <command>\n' +
@@ -280,7 +324,12 @@ async function main(): Promise<void> {
           '  session-clear <session_id>    drop a spooled session (saved or discarded)\n' +
           '  slack-cursor [ts]             get (no arg) or set the Slack inbox drain cursor\n' +
           '  slack-link <url>              parse a Slack permalink -> {channelId, ts, threadTs}\n' +
-          '  repos [dir...]                repo names touched (git toplevel basenames)\n',
+          '  repos [dir...]                repo names touched (git toplevel basenames)\n' +
+          '  remote-get                    show GitHub remote sync config\n' +
+          '  remote-set <url> [branch]     configure GitHub remote, init git in ~/.lore, push\n' +
+          '  remote-disable                pause remote sync (keeps config)\n' +
+          '  remote-enable                 resume remote sync\n' +
+          '  remote-sync                   stage, commit, and push all lore changes\n',
       );
       process.exitCode = 2;
   }

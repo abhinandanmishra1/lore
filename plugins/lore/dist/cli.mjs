@@ -114,17 +114,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path8) {
-      const ctrl = callVisitor(key, node, visitor, path8);
+    function visit_(key, node, visitor, path9) {
+      const ctrl = callVisitor(key, node, visitor, path9);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path8, ctrl);
-        return visit_(key, ctrl, visitor, path8);
+        replaceNode(key, path9, ctrl);
+        return visit_(key, ctrl, visitor, path9);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path8 = Object.freeze(path8.concat(node));
+          path9 = Object.freeze(path9.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path8);
+            const ci = visit_(i, node.items[i], visitor, path9);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -135,13 +135,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path8 = Object.freeze(path8.concat(node));
-          const ck = visit_("key", node.key, visitor, path8);
+          path9 = Object.freeze(path9.concat(node));
+          const ck = visit_("key", node.key, visitor, path9);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path8);
+          const cv = visit_("value", node.value, visitor, path9);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -162,17 +162,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path8) {
-      const ctrl = await callVisitor(key, node, visitor, path8);
+    async function visitAsync_(key, node, visitor, path9) {
+      const ctrl = await callVisitor(key, node, visitor, path9);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path8, ctrl);
-        return visitAsync_(key, ctrl, visitor, path8);
+        replaceNode(key, path9, ctrl);
+        return visitAsync_(key, ctrl, visitor, path9);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path8 = Object.freeze(path8.concat(node));
+          path9 = Object.freeze(path9.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path8);
+            const ci = await visitAsync_(i, node.items[i], visitor, path9);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -183,13 +183,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path8 = Object.freeze(path8.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path8);
+          path9 = Object.freeze(path9.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path9);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path8);
+          const cv = await visitAsync_("value", node.value, visitor, path9);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -216,23 +216,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path8) {
+    function callVisitor(key, node, visitor, path9) {
       if (typeof visitor === "function")
-        return visitor(key, node, path8);
+        return visitor(key, node, path9);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path8);
+        return visitor.Map?.(key, node, path9);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path8);
+        return visitor.Seq?.(key, node, path9);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path8);
+        return visitor.Pair?.(key, node, path9);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path8);
+        return visitor.Scalar?.(key, node, path9);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path8);
+        return visitor.Alias?.(key, node, path9);
       return void 0;
     }
-    function replaceNode(key, path8, node) {
-      const parent = path8[path8.length - 1];
+    function replaceNode(key, path9, node) {
+      const parent = path9[path9.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -842,10 +842,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path8, value) {
+    function collectionFromPath(schema, path9, value) {
       let v = value;
-      for (let i = path8.length - 1; i >= 0; --i) {
-        const k = path8[i];
+      for (let i = path9.length - 1; i >= 0; --i) {
+        const k = path9[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -864,7 +864,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path8) => path8 == null || typeof path8 === "object" && !!path8[Symbol.iterator]().next().done;
+    var isEmptyPath = (path9) => path9 == null || typeof path9 === "object" && !!path9[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -894,11 +894,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path8, value) {
-        if (isEmptyPath(path8))
+      addIn(path9, value) {
+        if (isEmptyPath(path9))
           this.add(value);
         else {
-          const [key, ...rest] = path8;
+          const [key, ...rest] = path9;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -912,8 +912,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path8) {
-        const [key, ...rest] = path8;
+      deleteIn(path9) {
+        const [key, ...rest] = path9;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -927,8 +927,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path8, keepScalar) {
-        const [key, ...rest] = path8;
+      getIn(path9, keepScalar) {
+        const [key, ...rest] = path9;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -946,8 +946,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path8) {
-        const [key, ...rest] = path8;
+      hasIn(path9) {
+        const [key, ...rest] = path9;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -957,8 +957,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path8, value) {
-        const [key, ...rest] = path8;
+      setIn(path9, value) {
+        const [key, ...rest] = path9;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3473,9 +3473,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path8, value) {
+      addIn(path9, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path8, value);
+          this.contents.addIn(path9, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3550,14 +3550,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path8) {
-        if (Collection.isEmptyPath(path8)) {
+      deleteIn(path9) {
+        if (Collection.isEmptyPath(path9)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path8) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path9) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3572,10 +3572,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path8, keepScalar) {
-        if (Collection.isEmptyPath(path8))
+      getIn(path9, keepScalar) {
+        if (Collection.isEmptyPath(path9))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path8, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path9, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3586,10 +3586,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path8) {
-        if (Collection.isEmptyPath(path8))
+      hasIn(path9) {
+        if (Collection.isEmptyPath(path9))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path8) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path9) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3606,13 +3606,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path8, value) {
-        if (Collection.isEmptyPath(path8)) {
+      setIn(path9, value) {
+        if (Collection.isEmptyPath(path9)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path8), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path9), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path8, value);
+          this.contents.setIn(path9, value);
         }
       }
       /**
@@ -5572,9 +5572,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path8) => {
+    visit.itemAtPath = (cst, path9) => {
       let item = cst;
-      for (const [field, index] of path8) {
+      for (const [field, index] of path9) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5583,23 +5583,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path8) => {
-      const parent = visit.itemAtPath(cst, path8.slice(0, -1));
-      const field = path8[path8.length - 1][0];
+    visit.parentCollection = (cst, path9) => {
+      const parent = visit.itemAtPath(cst, path9.slice(0, -1));
+      const field = path9[path9.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path8, item, visitor) {
-      let ctrl = visitor(item, path8);
+    function _visit(path9, item, visitor) {
+      let ctrl = visitor(item, path9);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path8.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path9.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5610,10 +5610,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path8);
+            ctrl = ctrl(item, path9);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path8) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path9) : ctrl;
     }
     exports.visit = visit;
   }
@@ -6915,14 +6915,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs7 = this.flowScalar(this.type);
+              const fs8 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs7, sep: [] });
+                map.items.push({ start, key: fs8, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs7);
+                this.stack.push(fs8);
               } else {
-                Object.assign(it, { key: fs7, sep: [] });
+                Object.assign(it, { key: fs8, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -7050,13 +7050,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs7 = this.flowScalar(this.type);
+              const fs8 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs7, sep: [] });
+                fc.items.push({ start: [], key: fs8, sep: [] });
               else if (it.sep)
-                this.stack.push(fs7);
+                this.stack.push(fs8);
               else
-                Object.assign(it, { key: fs7, sep: [] });
+                Object.assign(it, { key: fs8, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -8184,6 +8184,102 @@ function findSlackPermalink(text) {
   return m ? m[0] : null;
 }
 
+// src/remote.ts
+import { promises as fs7 } from "node:fs";
+import { execFile as execFile3 } from "node:child_process";
+import { promisify as promisify3 } from "node:util";
+import path8 from "node:path";
+var execFileAsync = promisify3(execFile3);
+function configPath(home) {
+  return path8.join(home, "remote.json");
+}
+async function getRemoteConfig(home) {
+  try {
+    const raw = await fs7.readFile(configPath(home), "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+async function setRemoteConfig(home, cfg) {
+  await fs7.writeFile(configPath(home), JSON.stringify(cfg, null, 2) + "\n", "utf8");
+}
+async function git(home, ...args) {
+  const { stdout } = await execFileAsync("git", args, { cwd: home });
+  return stdout.trim();
+}
+async function isGitRepo(home) {
+  try {
+    await git(home, "rev-parse", "--git-dir");
+    return true;
+  } catch {
+    return false;
+  }
+}
+async function initRemoteRepo(home, repoUrl, branch = "main") {
+  const alreadyRepo = await isGitRepo(home);
+  if (!alreadyRepo) {
+    await git(home, "init", "-b", branch);
+  }
+  const gitignore = path8.join(home, ".gitignore");
+  try {
+    await fs7.access(gitignore);
+  } catch {
+    await fs7.writeFile(
+      gitignore,
+      ["# Lore remote sync \u2014 exclude per-machine session spool", "spool/", ""].join("\n"),
+      "utf8"
+    );
+  }
+  try {
+    await git(home, "remote", "add", "origin", repoUrl);
+  } catch {
+    await git(home, "remote", "set-url", "origin", repoUrl);
+  }
+  await git(home, "add", "-A");
+  const status = await git(home, "status", "--short");
+  if (status) {
+    await git(home, "commit", "-m", "chore: initialize lore remote sync");
+  }
+  try {
+    await git(home, "push", "-u", "origin", branch);
+    return { initialized: true, pushed: true, message: `Pushed to ${repoUrl} (${branch})` };
+  } catch (err) {
+    return {
+      initialized: true,
+      pushed: false,
+      message: `Remote configured but push failed: ${err instanceof Error ? err.message : String(err)}`
+    };
+  }
+}
+async function syncToRemote(home) {
+  const cfg = await getRemoteConfig(home);
+  if (!cfg || !cfg.enabled) {
+    return { ok: true, committed: false, pushed: false, message: "remote sync disabled" };
+  }
+  if (!await isGitRepo(home)) {
+    return { ok: false, committed: false, pushed: false, message: "~/.lore is not a git repo \u2014 run `lore remote-set <url>` first" };
+  }
+  await git(home, "add", "-A");
+  const status = await git(home, "status", "--short");
+  if (!status) {
+    return { ok: true, committed: false, pushed: false, message: "nothing to sync" };
+  }
+  const date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  await git(home, "commit", "-m", `chore: lore sync ${date}`);
+  try {
+    await git(home, "push", "origin", cfg.branch);
+    return { ok: true, committed: true, pushed: true, message: `synced to ${cfg.repo}` };
+  } catch (err) {
+    return {
+      ok: false,
+      committed: true,
+      pushed: false,
+      message: `committed but push failed: ${err instanceof Error ? err.message : String(err)}`
+    };
+  }
+}
+
 // src/cli.ts
 function readStdin() {
   return new Promise((resolve, reject) => {
@@ -8382,9 +8478,46 @@ async function main() {
       out(parsed ? { ok: true, ...parsed } : { ok: false, error: "not a Slack permalink" });
       return;
     }
+    case "remote-get": {
+      const cfg = await getRemoteConfig(home);
+      out({ ok: true, configured: cfg !== null, config: cfg });
+      return;
+    }
+    case "remote-set": {
+      const repoUrl = args[0];
+      if (!repoUrl) throw new Error("remote-set needs <repoUrl>");
+      const branch = args[1] ?? "main";
+      const cfg = { enabled: true, repo: repoUrl, branch };
+      await setRemoteConfig(home, cfg);
+      const result = await initRemoteRepo(home, repoUrl, branch);
+      out({ ok: true, config: cfg, ...result });
+      return;
+    }
+    case "remote-disable": {
+      const cfg = await getRemoteConfig(home);
+      if (!cfg) {
+        out({ ok: true, message: "no remote configured" });
+        return;
+      }
+      await setRemoteConfig(home, { ...cfg, enabled: false });
+      out({ ok: true, message: "remote sync disabled" });
+      return;
+    }
+    case "remote-enable": {
+      const cfg = await getRemoteConfig(home);
+      if (!cfg) throw new Error("no remote configured \u2014 run remote-set first");
+      await setRemoteConfig(home, { ...cfg, enabled: true });
+      out({ ok: true, config: cfg });
+      return;
+    }
+    case "remote-sync": {
+      const result = await syncToRemote(home);
+      out(result);
+      return;
+    }
     default:
       process2.stderr.write(
-        "usage: lore <command>\n  scaffold                      create the ~/.lore tree\n  register [repoPath]           register a project (slug from path)\n  ingest-scan <path...>         list importable markdown (dedup by source_hash)\n  put                           write one entry from JSON on stdin\n  reindex                       rebuild all index maps + daily logs from entries\n  drift                         report cache drift (hash + index-count mismatches)\n  range <from> <to>             time-range query over daily logs (ISO days)\n  feature <project> <feature> [initiative]   load a feature's entries\n  entry <id>                    fetch one entry by id\n  search <terms> [--limit N]    ranked full-text search across all entries\n  autocontext [dir]             auto-detect branch/ticket/PRs/repos as JSON\n  context-put                   write a repo-orientation doc from JSON on stdin\n  context-get [--dir d|slug]    read a repo-orientation doc (default: cwd repo)\n  session-start                 SessionStart hook: emit repo context + unsaved sessions\n  session-end                   SessionEnd hook: spool the ended session for later save\n  session-pending               list sessions spooled but not yet saved\n  session-clear <session_id>    drop a spooled session (saved or discarded)\n  slack-cursor [ts]             get (no arg) or set the Slack inbox drain cursor\n  slack-link <url>              parse a Slack permalink -> {channelId, ts, threadTs}\n  repos [dir...]                repo names touched (git toplevel basenames)\n"
+        "usage: lore <command>\n  scaffold                      create the ~/.lore tree\n  register [repoPath]           register a project (slug from path)\n  ingest-scan <path...>         list importable markdown (dedup by source_hash)\n  put                           write one entry from JSON on stdin\n  reindex                       rebuild all index maps + daily logs from entries\n  drift                         report cache drift (hash + index-count mismatches)\n  range <from> <to>             time-range query over daily logs (ISO days)\n  feature <project> <feature> [initiative]   load a feature's entries\n  entry <id>                    fetch one entry by id\n  search <terms> [--limit N]    ranked full-text search across all entries\n  autocontext [dir]             auto-detect branch/ticket/PRs/repos as JSON\n  context-put                   write a repo-orientation doc from JSON on stdin\n  context-get [--dir d|slug]    read a repo-orientation doc (default: cwd repo)\n  session-start                 SessionStart hook: emit repo context + unsaved sessions\n  session-end                   SessionEnd hook: spool the ended session for later save\n  session-pending               list sessions spooled but not yet saved\n  session-clear <session_id>    drop a spooled session (saved or discarded)\n  slack-cursor [ts]             get (no arg) or set the Slack inbox drain cursor\n  slack-link <url>              parse a Slack permalink -> {channelId, ts, threadTs}\n  repos [dir...]                repo names touched (git toplevel basenames)\n  remote-get                    show GitHub remote sync config\n  remote-set <url> [branch]     configure GitHub remote, init git in ~/.lore, push\n  remote-disable                pause remote sync (keeps config)\n  remote-enable                 resume remote sync\n  remote-sync                   stage, commit, and push all lore changes\n"
       );
       process2.exitCode = 2;
   }

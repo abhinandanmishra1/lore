@@ -2,7 +2,7 @@
   "name": "lore",
   "displayName": "Lore",
   "description": "Persistent, queryable engineering memory for Claude — why a feature was built, what shipped, what's remaining. Save/query skills plus an MCP read server reachable from any conversation.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "Abhinandan Mishra"
   },

@@ -53,6 +53,16 @@ printf '%s' '<PutInput JSON>' | LORE put
 Required JSON: `type`, `project`, `feature`, `title`, `body`. `id`, index maps, and the
 daily log are automatic.
 
-## Step 4 — confirm
+## Step 4 — remote sync (if configured)
+
+```bash
+LORE remote-sync
+```
+
+- `pushed: true` → note "synced to remote" in the confirmation (one line).
+- `message: "remote sync disabled"` → say nothing.
+- push failed → warn: "saved locally but remote push failed: <message>".
+
+## Step 5 — confirm
 
 Report each entry id and where it landed. Offer `/lore-ask` to verify it reads back well.

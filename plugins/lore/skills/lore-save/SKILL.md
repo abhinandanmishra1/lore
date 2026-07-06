@@ -64,7 +64,21 @@ Required JSON fields: `type`, `project`, `feature`, `title`, `body`. See
 `skills/lore-setup/SKILL.md` for the full field list. `id`, index maps, and the daily log
 are handled automatically.
 
-## Step 4 — confirm
+## Step 4 — remote sync (if configured)
+
+After writing all entries, push to the GitHub remote if one is configured:
+
+```bash
+LORE remote-sync
+```
+
+Returns `{ ok, committed, pushed, message }`.
+
+- `pushed: true` → mention "synced to remote" alongside the entry ids (one line, not a separate section).
+- `pushed: false`, `message: "remote sync disabled"` → no remote configured or disabled; say nothing.
+- `pushed: false` with an error message → warn the user: "saved locally but remote push failed: <message>".
+
+## Step 5 — confirm
 
 Report each entry id written and where it landed (project / initiative / feature). If you
 wrote a `status` entry, note the feature's new current status.

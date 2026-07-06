@@ -98,8 +98,39 @@ atomic `decision`/`fix` entries for the load-bearing calls inside it.
 Summarize: store path, project slug, N files scanned, M imported, K skipped (with reasons),
 and the feature/initiative tree created. Suggest `/lore-ask` to query it.
 
+## Step 5 — optional GitHub remote sync
+
+After the report, ask the user (AskUserQuestion):
+
+> "Would you like to back up your Lore memory to a GitHub repo? This lets you sync across
+> machines and recover if `~/.lore` is lost. You can set it up now or skip and enable it later."
+
+**If they want remote sync**, ask for the GitHub repo URL (HTTPS or SSH — e.g.
+`https://github.com/you/lore-memory` or `git@github.com:you/lore-memory.git`). Then:
+
+```bash
+# Configure remote, init git in ~/.lore, and push initial state.
+LORE remote-set "<repoUrl>" [branch]
+```
+
+`remote-set` returns JSON: `{ ok, config, initialized, pushed, message }`. Report the result
+to the user. If `pushed: false`, show the `message` — they may need to create the repo first
+or check their SSH key.
+
+**What gets synced:** everything under `~/.lore` except `spool/` (per-machine session data is
+excluded via `.gitignore`). The git repo lives inside `~/.lore` itself.
+
+**If they skip**, say: "No problem — run `/lore-setup` again or `lore remote-set <url>` in
+the terminal any time to enable it."
+
+Check current remote config with:
+```bash
+LORE remote-get
+```
+
 ## Notes
 
 - Idempotent: re-running `/lore-setup --ingest` over the same paths imports nothing new.
 - Never touches the user's source repos — only writes under `~/.lore` (or `$LORE_HOME`).
 - Phase A is Claude-Code-only and manual-write; auto-capture + MCP write land in Phase B.
+- Remote sync is opt-in: local memory works without it.
